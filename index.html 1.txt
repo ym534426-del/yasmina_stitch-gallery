@@ -1,0 +1,583 @@
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+// استخدام مكتبة lucide-react لأيقونات الويب
+import { Sun, Moon, Instagram, MessageSquare, Menu, X, CheckCircle, Image, Heart } from 'lucide-react';
+
+// -------------------------------------------------------------------------
+// 1. تعريف بيانات المنتجات (Gallery Data Structure)
+// -------------------------------------------------------------------------
+
+// قائمة المنتجات مع أيقوناتها التعبيرية كما طلبتِ
+const PRODUCTS = [
+  { id: 'newborn', name: 'طارات مولود', color: 'text-sky-500', icon: '💙', slug: 'newborn-hoops' },
+  { id: 'wedding', name: 'مناديل كتب كتاب', color: 'text-gray-300', icon: '🤍', slug: 'wedding-handkerchiefs' },
+  { id: 'cartoon', name: 'طارات كرتونية', color: 'text-orange-400', icon: '🧡', slug: 'cartoon-hoops' },
+  { id: 'quranic', name: 'طارات وبراويز آيات قرآنية', color: 'text-emerald-600', icon: '💚', slug: 'quranic-art' },
+  { id: 'socks', name: 'تطريز على شرابات', color: 'text-purple-500', icon: '💜', slug: 'embroidered-socks' },
+  { id: 'wanas', name: 'وَنَس', color: 'text-red-500', icon: '❤️', slug: 'wanas-collection' },
+  { id: 'memories', name: 'ذكرى جميلة للصور', color: 'text-amber-700', icon: '🤎', slug: 'photo-memories' },
+];
+
+// بيانات وهمية للصور داخل كل معرض (للتوضيح)
+const GALLERY_IMAGES = {
+  'newborn': [
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_17-38-59.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_18-38-12.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_18-34-20.jpg",
+  ],
+  // ** تم تحديث 'wedding' بالروابط الحقيقية التي أرسلتيها **
+  'wedding': [
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_19-21-57.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_19-21-58.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_19-22-00.jpg",
+  ],
+  // ** تم تحديث 'cartoon' بالروابط الحقيقية التي أرسلتيها **
+  'cartoon': [
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-10-54.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-10-58.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-09_19-54-12.jpg",
+  ],
+  // ** تم تحديث 'quranic' بالروابط الحقيقية التي أرسلتيها **
+  'quranic': [
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_01-26-50.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_01-26-51.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_01-26-42.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_18-34-18.jpg",
+  ],
+  // ** تم تحديث 'socks' بالروابط الحقيقية التي أرسلتيها (7 صور) **
+  'socks': [
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-33-01.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-33-04.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-33-07.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-33-10.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-33-14.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-33-17.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-33-20.jpg",
+  ],
+  // ** تم تحديث 'wanas' بالروابط الحقيقية التي أرسلتيها **
+  'wanas': [
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-12_18-34-17.jpg",
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-10-57.jpg",
+  ],
+  // ** تم إزالة Placeholder من 'memories' **
+  'memories': [
+    "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/photo_2025-11-13_02-10-55.jpg",
+  ],
+};
+
+// -------------------------------------------------------------------------
+// 2. المكونات المساعدة (Helper Components)
+// -------------------------------------------------------------------------
+
+// ** مكون نافذة عرض الصورة المكبرة (Lightbox Modal) **
+const LightboxModal = ({ imageUrl, onClose }) => {
+  // إغلاق عند الضغط على مفتاح ESC
+  useEffect(() => {
+    const handleKeydown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [onClose]);
+
+  if (!imageUrl) return null;
+
+  return (
+    // حاوية المودال (الخلفية الداكنة) - z-[100] لضمان الظهور فوق كل شيء
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brown-dark/95 backdrop-blur-sm transition-opacity duration-300"
+      onClick={onClose} // إغلاق عند الضغط على الخلفية
+      dir="rtl"
+    >
+      {/* حاوية الصورة نفسها - تمكين التمرير التلقائي (overflow-auto) وتحديد أقصى ارتفاع (max-h-[95vh]) للسماح بالتمرير داخل الإطار المتاح */}
+      <div
+        className="relative max-w-6xl w-full max-h-[95vh] overflow-auto rounded-xl shadow-2xl transform scale-100 transition-transform duration-300"
+        onClick={(e) => e.stopPropagation()} // منع إغلاق المودال عند الضغط على الصورة
+      >
+        <img
+          src={imageUrl}
+          alt="صورة مكبرة"
+          // object-contain: لضمان أن الصورة تظهر كاملة (غير مقطوعة) ضمن الحاوية القابلة للتمرير
+          className="w-full h-auto object-contain" 
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = `https://placehold.co/1000x1000/ff6666/ffffff?text=فشل+تحميل+الصورة`;
+          }}
+        />
+
+        {/* زر الإغلاق */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 left-4 p-3 rounded-full bg-off-white/80 dark:bg-brown-dark/80 text-brown-dark dark:text-off-white shadow-lg hover:bg-accent-1 hover:text-white transition-all duration-300"
+          aria-label="إغلاق الصورة المكبرة"
+        >
+          <X size={24} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
+// مكون بطاقة المنتج في صفحة الفهرس
+const ProductCard = ({ product, onClick }) => (
+  <button
+    onClick={() => onClick(product.id)}
+    className="group bg-coffee/50 dark:bg-brown-dark/50 p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] border-4 border-transparent hover:border-accent-2"
+  >
+    <div className={`text-4xl mb-4 ${product.color}`}>{product.icon}</div>
+    <h3 className="text-xl font-extrabold text-brown-dark dark:text-off-white group-hover:text-accent-1 transition-colors">
+      {product.name}
+    </h3>
+    <p className="mt-2 text-sm text-coffee-dark dark:text-off-white/80">
+      تصفح معرض صور {product.name} المطرزة.
+    </p>
+  </button>
+);
+
+// مكون معرض الصور (يعرض صور مربعة 1:1)
+// تم إضافة دالة openModal كخاصية جديدة
+const GalleryGrid = ({ images, openModal }) => (
+  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+    {images.map((url, index) => (
+      <div 
+        key={index} 
+        onClick={() => openModal(url)} // ** تم إضافة دالة الفتح هنا **
+        className="aspect-square w-full rounded-lg overflow-hidden shadow-lg border-4 border-off-white dark:border-brown-dark cursor-pointer transition-shadow hover:shadow-accent-1/50"
+      >
+        <img
+          src={url}
+          alt={`صورة تطريز رقم ${index + 1}`}
+          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          onError={(e) => {
+            e.target.onerror = null;
+            // استخدام Placeholder في حال فشل تحميل الصورة
+            e.target.src = `https://placehold.co/500x500/696969/ffffff?text=صورة+غير+متوفرة`;
+          }}
+        />
+      </div>
+    ))}
+  </div>
+);
+
+// مكون زر التواصل
+const ContactButton = ({ icon: Icon, label, href, bgColor }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className={`flex items-center justify-center gap-3 p-4 rounded-full font-bold shadow-xl transition-all duration-300 hover:scale-105 ${bgColor} text-white`}
+  >
+    <Icon size={24} />
+    <span className="hidden sm:inline-block">{label}</span>
+  </a>
+);
+
+// -------------------------------------------------------------------------
+// 3. مكونات الأقسام الرئيسية (Main Sections)
+// -------------------------------------------------------------------------
+
+// تم تحديث الرابط الافتراضي للشعار هنا:
+const LOGO_URL = "https://raw.githubusercontent.com/ym534426-del/yasmina-stitch/refs/heads/main/Gemini_Generated_Image_gs6vspgs6vspgs6v.png";
+
+const HeroSection = ({ logoUrl = LOGO_URL }) => (
+  <section id="hero" className="min-h-[70vh] flex flex-col items-center justify-center text-center p-8 bg-off-white dark:bg-brown-dark transition-colors">
+    <div className="mb-8">
+      {/* مكان الشعار (Logo) */}
+      <img
+        src={logoUrl}
+        alt="شعار ياسمينا ستيتش"
+        // ** التعديل هنا: تم تغيير rounded-xl إلى rounded-full **
+        className="w-32 h-32 md:w-40 md:h-40 rounded-full border-8 border-coffee dark:border-off-white/20 shadow-2xl transition-transform duration-500 hover:scale-110 object-cover"
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = "https://placehold.co/150x150/8B4513/FFFFFF?text=YS+Logo";
+        }}
+      />
+    </div>
+
+    <h1 className="text-4xl md:text-6xl font-black text-brown-dark dark:text-off-white mb-4">
+      Yasmina Stitch
+    </h1>
+
+    <p className="max-w-xl text-xl md:text-2xl font-light text-coffee-dark dark:text-off-white/90 leading-relaxed italic">
+      تطريز يدوي بتفاصيل دافئة ومميزة صُنعت بكل حب 🤎
+    </p>
+    <p className="max-w-xl text-lg md:text-xl mt-4 text-coffee-dark dark:text-off-white/70 leading-relaxed border-b-2 border-accent-2 pb-4">
+      متاح تنفيذ الأفكار اللي تحبوها ابعتولنا رسالة ونرتبها سوا بالخيوط 🤎
+    </p>
+
+    <div className="mt-8 flex gap-4">
+      <ContactButton
+        icon={MessageSquare}
+        label="رسالة واتساب"
+        href="https://wa.me/201152205148"
+        bgColor="bg-green-500 hover:bg-green-600"
+      />
+      <ContactButton
+        icon={Instagram}
+        label="انستجرام"
+        href="https://www.instagram.com/yasmina_stitch"
+        bgColor="bg-pink-600 hover:bg-pink-700"
+      />
+    </div>
+
+  </section>
+);
+
+const AboutSection = () => (
+  <section id="about" className="py-20 px-4 md:px-10 text-center bg-coffee/10 dark:bg-brown-dark/70 transition-colors">
+    <h2 className="text-3xl md:text-4xl font-bold text-brown-dark dark:text-off-white mb-6 border-b-4 border-accent-1 inline-block pb-2">
+      Yasmina Stitch بتقدّم إيه؟
+    </h2>
+    <p className="max-w-3xl mx-auto text-lg md:text-xl text-coffee-dark dark:text-off-white/80">
+      نحن نحول الخيوط والأقمشة إلى قصص خالدة، مهتمين بأدق التفاصيل لابتكار قطع فنية فريدة تناسب جميع المناسبات وتدوم طويلاً. هنا ستجدين مجموعتنا المتنوعة المصنوعة خصيصًا لتلبية ذوقكِ الرفيع.
+    </p>
+  </section>
+);
+
+const ProductsIndexSection = ({ setCurrentView }) => (
+  <section id="products" className="py-20 px-4 md:px-10 bg-off-white dark:bg-brown-dark transition-colors">
+    <h2 className="text-center text-3xl md:text-4xl font-bold text-brown-dark dark:text-off-white mb-12">
+      استكشفي مجموعاتنا المتميزة
+    </h2>
+    <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 text-center">
+      {PRODUCTS.map((product) => (
+        <ProductCard key={product.id} product={product} onClick={setCurrentView} />
+      ))}
+    </div>
+  </section>
+);
+
+// ** تم تعديل مكون صندوق مشاركة الذكرى ليصبح كما طلبتِ تماماً **
+const MemoryPromptBox = () => (
+  <section className="py-12 px-4 md:px-10 bg-coffee/20 dark:bg-brown-dark/50 transition-colors text-center">
+    <div className="max-w-xl mx-auto p-8 rounded-xl border-4 border-accent-1 dark:border-accent-2 shadow-2xl bg-off-white dark:bg-brown-dark/70">
+      <h3 className="text-2xl font-bold text-brown-dark dark:text-off-white mb-6">
+        شاركنا نوع الذكرى اللي تحب تكون عندك من yasmina stitch 🤎
+      </h3>
+      
+      {/* هذا زر تفاعلي يوجه مباشرة للواتساب */}
+      <a
+        href="https://wa.me/201152205148?text=مرحباً%20%D9%8A%D8%A7%20%D9%8A%D8%A7%D8%B3%D9%85%D9%8A%D9%86%D8%A7%20%D8%B3%D8%AA%D9%8A%D8%AA%D8%B4%2C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D9%81%D9%8A%20%D8%AA%D9%86%D9%81%D9%8A%D8%B0%20%D8%B0%D9%83%D8%B1%D9%89%20%D8%AE%D8%A7%D8%B5%D8%A9%20%D9%84%D9%80..."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-block w-full py-3 rounded-lg bg-accent-1 text-white font-bold transition-all duration-300 hover:bg-accent-2 hover:scale-[1.01] shadow-lg"
+      >
+        إرسال الفكرة عبر واتساب
+      </a>
+      <p className="text-xs mt-3 text-coffee-dark/70 dark:text-off-white/60">
+        سيتم توجيهكِ مباشرة لفتح محادثة واتساب
+      </p>
+    </div>
+  </section>
+);
+
+
+const ProductGallerySection = ({ currentView, setCurrentView, openModal }) => {
+  const product = PRODUCTS.find(p => p.id === currentView);
+  const images = GALLERY_IMAGES[currentView] || [];
+
+  if (!product) {
+    return <div className="text-center p-20 text-red-500 dark:text-red-300">خطأ في تحميل المعرض.</div>;
+  }
+
+  return (
+    <section className="py-12 md:py-20 px-4 md:px-10 min-h-screen bg-off-white dark:bg-brown-dark transition-colors">
+      <div className="flex items-center justify-between mb-8">
+        <button
+          onClick={() => setCurrentView('home')}
+          className="flex items-center gap-2 text-coffee-dark dark:text-off-white hover:text-accent-1 dark:hover:text-accent-2 font-bold transition-colors text-lg"
+        >
+          <X size={20} className="transform rotate-45" />
+          العودة للمنتجات
+        </button>
+        <h2 className={`text-4xl md:text-5xl font-black ${product.color} border-b-4 border-accent-1 pb-2`}>
+          {product.icon} {product.name}
+        </h2>
+      </div>
+
+      <div className="max-w-7xl mx-auto">
+        {images.length > 0 ? (
+          <GalleryGrid images={images} openModal={openModal} />
+        ) : (
+          <div className="text-center p-16 bg-coffee/20 dark:bg-brown-dark/90 rounded-xl">
+            <Image size={48} className="mx-auto text-coffee-dark dark:text-off-white mb-4" />
+            <p className="xl text-brown-dark dark:text-off-white">
+              لا توجد صور متاحة حاليًا لهذا القسم. سيتم إضافة الأعمال قريباً!
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+// مكون التذييل (Footer)
+const Footer = () => (
+  <footer className="bg-coffee-dark dark:bg-brown-dark text-off-white py-10 px-4 transition-colors">
+    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-right">
+      <div className="mb-6 md:mb-0">
+        <h3 className="text-2xl font-black text-accent-1 mb-2">Yasmina Stitch</h3>
+        <p className="text-sm">
+          تطريز يدوي بأدق التفاصيل. جميع الحقوق محفوظة &copy; {new Date().getFullYear()}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-4 items-center md:items-start">
+        <h4 className="text-lg font-bold text-accent-2">روابط سريعة</h4>
+        <div className="flex gap-4">
+          <ContactButton
+            icon={MessageSquare}
+            label="واتساب"
+            href="https://wa.me/201152205148"
+            bgColor="bg-green-600 hover:bg-green-500 p-2"
+          />
+          <ContactButton
+            icon={Instagram}
+            label="انستجرام"
+            href="https://www.instagram.com/yasmina_stitch"
+            bgColor="bg-pink-700 hover:bg-pink-600 p-2"
+          />
+        </div>
+        <p className="text-xs mt-2 text-off-white/70">
+          <CheckCircle size={14} className="inline-block ml-1" />
+          صُنع بتفاصيل دافئة
+        </p>
+      </div>
+    </div>
+  </footer>
+);
+
+// -------------------------------------------------------------------------
+// 4. المكون الرئيسي (App Component)
+// -------------------------------------------------------------------------
+
+const App = () => {
+  // حالة التحكم في وضع العرض (Light/Dark Mode)
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // التحقق من الإعدادات المفضلة للمستخدم أو التخزين المحلي
+    if (typeof window !== 'undefined' && window.localStorage.getItem('theme') === 'dark') {
+      return true;
+    }
+    return false;
+  });
+
+  // حالة التحكم في عرض الصفحة الحالية
+  const [currentView, setCurrentView] = useState('home'); // 'home' or a product ID
+  
+  // ** جديد: حالة التحكم في نافذة العرض المكبرة (Lightbox) **
+  const [selectedImage, setSelectedImage] = useState(null); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // دالة لفتح النافذة المكبرة
+  const openModal = useCallback((url) => {
+    setSelectedImage(url);
+    setIsModalOpen(true);
+  }, []);
+
+  // دالة لإغلاق النافذة المكبرة
+  const closeModal = useCallback(() => {
+    setSelectedImage(null);
+    setIsModalOpen(false);
+  }, []);
+
+
+  // تطبيق وضع العرض على الـ HTML
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      root.style.backgroundColor = '#4A2B1A'; // خلفية داكنة رئيسية
+      window.localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      root.style.backgroundColor = '#F8F4E8'; // خلفية فاتحة رئيسية
+      window.localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  // دالة تبديل الوضع (Light/Dark)
+  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
+
+  // دالة التبديل إلى قسم معين في الصفحة الرئيسية
+  const scrollToSection = (sectionId) => {
+    setCurrentView('home');
+    setTimeout(() => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
+  // -----------------------------------------------------------------------
+  // تنسيقات Tailwind المخصصة للخطوط والألوان (Custom Colors & Fonts)
+  // -----------------------------------------------------------------------
+  // تم تطبيق الخطوط والألوان الدافئة باستخدام Tailwind
+  // ملاحظة: الخطوط (Cairo/Almarai) تُحمل عادةً من ملف CSS خارجي أو CDN
+  // لكن هنا سنضيف تعريفات CSS لضمان تطبيقها على الأقل بالخطوط البديلة
+
+  const CustomStyles = () => (
+    <style>
+      {`
+        /* تحميل خط Cairo من Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
+
+        /* تطبيق خط Cairo على كامل التطبيق */
+        * {
+          font-family: 'Cairo', 'Inter', sans-serif;
+          direction: rtl; /* ضمان اتجاه النص من اليمين لليسار */
+        }
+
+        /* تعريف الألوان الدافئة المخصصة في Tailwind */
+        .bg-off-white { background-color: #F8F4E8; } /* أوف وايت / بيج فاتح */
+        .text-off-white { color: #F8F4E8; }
+        .bg-coffee { background-color: #D2B48C; } /* كافيه فاتح */
+        .text-coffee { color: #D2B48C; }
+        .bg-coffee-dark { background-color: #8B4513; } /* بني داكن / Mocha */
+        .text-coffee-dark { color: #8B4513; }
+        .bg-brown-dark { background-color: #4A2B1A; } /* بني داكن جداً / الشوكولاتة */
+        .text-brown-dark { color: #4A2B1A; }
+        .bg-accent-1 { background-color: #CD853F; } /* لهجة برتقالية دافئة */
+        .text-accent-1 { color: #CD853F; }
+        .bg-accent-2 { background-color: #A0522D; } /* لهجة أغمق / Terracotta */
+        .text-accent-2 { color: #A0522D; }
+
+        /* تغيير شريط التمرير ليناسب الثيم (تم التبسيط لتجنب أخطاء المتغيرات) */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: #F8F4E8; /* Off-White for track */
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: #CD853F; /* Accent-1 for thumb */
+          border-radius: 4px;
+        }
+
+        /* تنسيق شريط التمرير في الوضع الداكن */
+        .dark ::-webkit-scrollbar-track {
+          background: #382015; /* Darker track for dark mode */
+        }
+        .dark ::-webkit-scrollbar-thumb {
+          background: #D2B48C; /* Coffee color for thumb in dark mode */
+        }
+      `}
+    </style>
+  );
+
+  // مكون شريط التنقل (Navigation Bar)
+  const NavBar = () => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const navItems = [
+      { label: 'الرئيسية', id: 'hero' },
+      { label: 'عنّا', id: 'about' },
+      { label: 'المنتجات', id: 'products' },
+    ];
+
+    return (
+      <header className="sticky top-0 z-50 shadow-md bg-off-white/90 dark:bg-brown-dark/90 backdrop-blur-sm border-b-2 border-accent-1/50 dark:border-off-white/10 transition-colors">
+        <div className="max-w-7xl mx-auto flex items-center justify-between p-4">
+          <h1
+            className="text-2xl font-black text-accent-1 dark:text-accent-2 cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setCurrentView('home')}
+          >
+            Y-Stitch
+          </h1>
+
+          <nav className="hidden md:flex items-center gap-6">
+            {navItems.map(item => (
+              <a
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className="text-coffee-dark dark:text-off-white font-semibold text-lg hover:text-accent-1 dark:hover:text-accent-2 transition-colors cursor-pointer"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-4">
+            {/* زر تبديل الوضع (Light/Dark Mode) */}
+            <button
+              onClick={toggleDarkMode}
+              className="p-3 rounded-full bg-coffee dark:bg-accent-1 text-brown-dark dark:text-off-white shadow-md hover:scale-110 transition-transform duration-300"
+              aria-label={isDarkMode ? 'التبديل إلى الوضع الفاتح' : 'التبديل إلى الوضع الداكن'}
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
+            {/* زر القائمة للهواتف (Mobile Menu) */}
+            <button
+              onClick={() => setIsMenuOpen(prev => !prev)}
+              className="md:hidden p-2 rounded-lg bg-coffee dark:bg-accent-1 text-brown-dark dark:text-off-white transition-transform"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {/* قائمة الهواتف المنسدلة (Mobile Dropdown) */}
+        {isMenuOpen && (
+          <div className="md:hidden flex flex-col items-center py-4 space-y-3 bg-off-white dark:bg-brown-dark shadow-inner">
+            {navItems.map(item => (
+              <a
+                key={item.id}
+                onClick={() => {
+                  scrollToSection(item.id);
+                  setIsMenuOpen(false);
+                }}
+                className="w-full text-center text-coffee-dark dark:text-off-white font-semibold py-2 hover:bg-coffee/50 dark:hover:bg-accent-1/50 transition-colors cursor-pointer"
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+        )}
+      </header>
+    );
+  };
+
+  // -----------------------------------------------------------------------
+  // عرض التطبيق الرئيسي (Main Render Logic)
+  // -----------------------------------------------------------------------
+
+  return (
+    <>
+      <CustomStyles />
+      <div className="min-h-screen font-cairo" dir="rtl">
+        <NavBar />
+
+        <main className="pt-0">
+          {currentView === 'home' ? (
+            <>
+              <HeroSection />
+              <AboutSection />
+              <ProductsIndexSection setCurrentView={setCurrentView} />
+              {/* ** إضافة صندوق مشاركة الذكرى هنا ** */}
+              <MemoryPromptBox />
+            </>
+          ) : (
+            // تم تمرير دالة openModal هنا
+            <ProductGallerySection 
+              currentView={currentView} 
+              setCurrentView={setCurrentView}
+              openModal={openModal}
+            />
+          )}
+        </main>
+
+        <Footer />
+      </div>
+      
+      {/* ** عرض النافذة المكبرة إذا كانت مفتوحة ** */}
+      {isModalOpen && <LightboxModal imageUrl={selectedImage} onClose={closeModal} />}
+    </>
+  );
+};
+
+export default App;
